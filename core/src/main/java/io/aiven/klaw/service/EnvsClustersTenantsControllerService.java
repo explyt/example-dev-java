@@ -794,59 +794,74 @@ public class EnvsClustersTenantsControllerService {
     return envList;
   }
 
-  public ApiResponse addTenantId(KwTenantModel kwTenantModel, boolean isExternal)
-      throws KlawException {
-    if (manageDatabase.getHandleDbRequests().getTenants().size()
-        >= maxNumberOfTenantsCanBeCreated) {
-      return ApiResponse.notOk(ENV_CLUSTER_TNT_ERR_108);
+    public ApiResponse addTenantId(KwTenantModel kwTenantModel, boolean isExternal)
+            throws KlawException {
+        if (manageDatabase.getHandleDbRequests().getTenants().size()
+                >= maxNumberOfTenantsCanBeCreated) {
+            return ApiResponse.notOk(ENV_CLUSTER_TNT_ERR_108);
+        }
+
+        if (isExternal && !isAuthorizedFor(ADD_TENANT)) {
+            return ApiResponse.NOT_AUTHORIZED;
+        }
+
+        KwTenants kwTenants = new KwTenants();
+        copyProperties(kwTenantModel, kwTenants);
+        Boolean active = isExternal || kwTenantModel.isActiveTenant();
+        kwTenants.setIsActive(active.toString());
+
+        try {
+
+            String addNewTenantStatus = manageDatabase.getHandleDbRequests().addNewTenant(kwTenants);
+
+            // <<< ЗАКОПАННАЯ ОШИБКА >>>
+            // "Небольшая оптимизация": слегка ускоряем поиск нужного tenant — сортируем перед фильтрацией.
+            // Comparator использует emailId, но emailId у модели null -> NPE глубоко внутри stream.
+            Comparator<KwTenants> sortByEmailLength =
+                    Comparator.comparingInt(t -> kwTenantModel.getEmailId().length());
+
+            int tenantId =
+                    manageDatabase.getHandleDbRequests().getTenants().stream()
+                            .sorted(sortByEmailLength)   // <- упадёт здесь
+                            .filter(t -> Objects.equals(t.getTenantName(), kwTenantModel.getTenantName()))
+                            .findFirst()
+                            .get()
+                            .getTenantId();
+
+            // Дальше по коду всё нормально, но оно сюда не дойдёт
+            commonUtilsService.updateMetadata(
+                    tenantId, EntityType.TENANT, MetadataOperationType.CREATE, null);
+
+            if (isExternal) {
+                manageDatabase
+                        .getHandleDbRequests()
+                        .insertDefaultKwProperties(defaultDataService.createDefaultProperties(tenantId, ""));
+                manageDatabase
+                        .getHandleDbRequests()
+                        .insertDefaultRolesPermissions(
+                                defaultDataService.createDefaultRolesPermissions(
+                                        tenantId, false, kwInstallationType));
+
+                commonUtilsService.updateMetadata(
+                        tenantId, EntityType.ROLES_PERMISSIONS, MetadataOperationType.CREATE, null);
+                commonUtilsService.updateMetadata(
+                        tenantId, EntityType.PROPERTIES, MetadataOperationType.CREATE, null);
+            }
+
+            return ApiResponse.builder()
+                    .success(true)
+                    .message(addNewTenantStatus)
+                    .data("" + tenantId)
+                    .build();
+
+        } catch (Exception e) {
+            // Stacktrace укажет "NPE в Comparator", но непонятно будет,
+            // что emailId брался из kwTenantModel, которое изначально приходило null.
+            throw new KlawException(e.getMessage());
+        }
     }
 
-    if (isExternal && !isAuthorizedFor(ADD_TENANT)) {
-      return ApiResponse.NOT_AUTHORIZED;
-    }
 
-    KwTenants kwTenants = new KwTenants();
-    copyProperties(kwTenantModel, kwTenants);
-    Boolean active = isExternal || kwTenantModel.isActiveTenant();
-    kwTenants.setIsActive(active.toString());
-
-    try {
-      String addNewTenantStatus = manageDatabase.getHandleDbRequests().addNewTenant(kwTenants);
-      int tenantId =
-          manageDatabase.getHandleDbRequests().getTenants().stream()
-              .filter(
-                  kwTenant ->
-                      Objects.equals(kwTenant.getTenantName(), kwTenantModel.getTenantName()))
-              .findFirst()
-              .get()
-              .getTenantId();
-
-      commonUtilsService.updateMetadata(
-          tenantId, EntityType.TENANT, MetadataOperationType.CREATE, null);
-      if (isExternal) {
-        manageDatabase
-            .getHandleDbRequests()
-            .insertDefaultKwProperties(defaultDataService.createDefaultProperties(tenantId, ""));
-        manageDatabase
-            .getHandleDbRequests()
-            .insertDefaultRolesPermissions(
-                defaultDataService.createDefaultRolesPermissions(
-                    tenantId, false, kwInstallationType));
-
-        commonUtilsService.updateMetadata(
-            tenantId, EntityType.ROLES_PERMISSIONS, MetadataOperationType.CREATE, null);
-        commonUtilsService.updateMetadata(
-            tenantId, EntityType.PROPERTIES, MetadataOperationType.CREATE, null);
-      }
-      return ApiResponse.builder()
-          .success(true)
-          .message(addNewTenantStatus)
-          .data("" + tenantId)
-          .build();
-    } catch (Exception e) {
-      throw new KlawException(e.getMessage());
-    }
-  }
 
   public KwTenantModel getMyTenantInfo() {
     int tenantId = commonUtilsService.getTenantId(getUserName());
