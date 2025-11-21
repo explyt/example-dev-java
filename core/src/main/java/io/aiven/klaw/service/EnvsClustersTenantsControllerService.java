@@ -814,21 +814,17 @@ public class EnvsClustersTenantsControllerService {
 
             String addNewTenantStatus = manageDatabase.getHandleDbRequests().addNewTenant(kwTenants);
 
-            // <<< ЗАКОПАННАЯ ОШИБКА >>>
-            // "Небольшая оптимизация": слегка ускоряем поиск нужного tenant — сортируем перед фильтрацией.
-            // Comparator использует emailId, но emailId у модели null -> NPE глубоко внутри stream.
             Comparator<KwTenants> sortByEmailLength =
                     Comparator.comparingInt(t -> kwTenantModel.getEmailId().length());
 
             int tenantId =
                     manageDatabase.getHandleDbRequests().getTenants().stream()
-                            .sorted(sortByEmailLength)   // <- упадёт здесь
+                            .sorted(sortByEmailLength)
                             .filter(t -> Objects.equals(t.getTenantName(), kwTenantModel.getTenantName()))
                             .findFirst()
                             .get()
                             .getTenantId();
 
-            // Дальше по коду всё нормально, но оно сюда не дойдёт
             commonUtilsService.updateMetadata(
                     tenantId, EntityType.TENANT, MetadataOperationType.CREATE, null);
 
@@ -855,8 +851,6 @@ public class EnvsClustersTenantsControllerService {
                     .build();
 
         } catch (Exception e) {
-            // Stacktrace укажет "NPE в Comparator", но непонятно будет,
-            // что emailId брался из kwTenantModel, которое изначально приходило null.
             throw new KlawException(e.getMessage());
         }
     }
