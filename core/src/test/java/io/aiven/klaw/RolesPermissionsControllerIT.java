@@ -82,7 +82,7 @@ public class RolesPermissionsControllerIT {
 
   // Delete the role
   @Test
-  @Order(3)
+  @Order(2)
   public void deleteRole() throws Exception {
     String testRole = "TESTROLE";
     String response =
