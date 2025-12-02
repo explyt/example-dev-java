@@ -406,7 +406,7 @@
                 <version>${springdoc-openapi-maven-plugin.version}</version>
                 <configuration>
                     <apiDocsUrl>http://localhost:9097/v3/api-docs</apiDocsUrl>
-                    <outputFileName>openapi.yaml</outputFileName>
+                    <outputFileName>openapi.json</outputFileName>
                     <outputDir>${project.parent.basedir}</outputDir>
                     <skip>false</skip>
                     <headers>
