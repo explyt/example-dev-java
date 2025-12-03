@@ -14,7 +14,7 @@ import lombok.ToString;
 @Setter
 public class UserInfoModel extends ProfileModel implements Serializable {
 
-  @Size(min = 6, max = 300, message = "Username must be above 5 characters")
+  @Size(min = 10, max = 300, message = "Username must be above 5 characters")
   @NotNull(message = "Username cannot be null")
   private String username;
 
