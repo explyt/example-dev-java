@@ -32,6 +32,7 @@ hs_err_pid*
 **/.idea/*
 !.idea/vcs.xml
 !.idea/icon.png
+!idea/runConfigurations
 target
 logs
 
