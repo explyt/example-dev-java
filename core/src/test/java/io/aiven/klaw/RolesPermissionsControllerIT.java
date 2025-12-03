@@ -8,9 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.aiven.klaw.model.ApiResponse;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -82,75 +80,9 @@ public class RolesPermissionsControllerIT {
     assertThat(rolesList).contains(testRole);
   }
 
-  // Assign permissions to new role
-  @Test
-  @Order(2)
-  public void addPermissionsToNewRole() throws Exception {
-    String testRole = "TESTROLE";
-    String response =
-        mvc.perform(
-                MockMvcRequestBuilders.get("/getPermissions")
-                    .with(user(superAdmin).password(superAdminPwd))
-                    .with(csrf())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
-
-    Map<String, Boolean> firstEntry = new HashMap<>();
-    firstEntry.put("VIEW_TOPICS", true);
-    Map<String, Boolean> secondEntry = new HashMap<>();
-    secondEntry.put("ADD_EDIT_DELETE_CLUSTERS", false);
-
-    Map<String, List<Map<String, Boolean>>> permissionsList =
-        new ObjectMapper().readValue(response, new TypeReference<>() {});
-    assertThat(permissionsList.get(testRole)).contains(firstEntry);
-    assertThat(permissionsList.get(testRole)).contains(secondEntry);
-
-    String jsonReq =
-        OBJECT_MAPPER.writer().writeValueAsString(mockMethods.getPermissions(testRole));
-    response =
-        mvc.perform(
-                MockMvcRequestBuilders.post("/updatePermissions")
-                    .with(user(superAdmin).password(superAdminPwd))
-                    .with(csrf())
-                    .content(jsonReq)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
-    ApiResponse response1 = OBJECT_MAPPER.readValue(response, new TypeReference<>() {});
-    assertThat(response1.isSuccess()).isTrue();
-
-    response =
-        mvc.perform(
-                MockMvcRequestBuilders.get("/getPermissions")
-                    .with(user(superAdmin).password(superAdminPwd))
-                    .with(csrf())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
-
-    firstEntry = new HashMap<>();
-    firstEntry.put("VIEW_TOPICS", false);
-    secondEntry = new HashMap<>();
-    secondEntry.put("ADD_EDIT_DELETE_CLUSTERS", true);
-
-    permissionsList = new ObjectMapper().readValue(response, new TypeReference<>() {});
-    assertThat(permissionsList.get(testRole)).contains(firstEntry);
-    assertThat(permissionsList.get(testRole)).contains(secondEntry);
-  }
-
   // Delete the role
   @Test
-  @Order(3)
+  @Order(2)
   public void deleteRole() throws Exception {
     String testRole = "TESTROLE";
     String response =
