@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="true" type="JUnit" factoryName="JUnit">
+    <option name="TEST_OBJECT" value="class" />
+    <option name="VM_PARAMETERS" value="-Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8" />
+    <option name="WORKING_DIRECTORY" value="$MODULE_DIR$" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
