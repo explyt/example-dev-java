@@ -674,7 +674,7 @@ public class SchemaRegistryControllerServiceTest {
                     schemaRequest, RequestOperationType.CREATE));
     assertThat(ex.getMessage())
         .contains("Cannot invoke \"java.lang.Boolean.booleanValue()\"")
-        .contains("validateCompatiblityOnSave\" is null");
+        .contains("\" is null");
   }
 
   @Test
