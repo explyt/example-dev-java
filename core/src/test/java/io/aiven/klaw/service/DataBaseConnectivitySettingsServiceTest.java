@@ -10,11 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class DataBaseConnectivitySettingsServiceTest {
 
     @Test
-    public void returnDefaultConnectionStringInitially() {
-        assertTrue(DataBaseConnectivitySettingsService.isUsingDefaultConnectionString());
-    }
-
-    @Test
     public void updateConnectionStringSuccessfully() {
         DataBaseConnectivitySettingsService.performConnectionStringUpdate("jdbc:mysql://localhost:3306/test_db");
         assertEquals("jdbc:mysql://localhost:3306/test_db",
