@@ -8,6 +8,9 @@
 - Backend модульно: `cd core && mvn clean verify`, `cd cluster-api && mvn clean verify`; Makefile цели `make klaw_core`, `make cluster_api`. Локальный запуск после сборки: `make run-core` и `make run-cluster-api` (читают собранные JAR из `target`).
 - Frontend: `cd coral && pnpm install`; dev против удаленного API — `pnpm dev`, без API — `pnpm dev-without-api`; сборка — `pnpm build`; тесты — `pnpm test` или `pnpm test-dev`; линт/формат — `pnpm lint`, автоформат — `pnpm reformat` + `pnpm eslint --fix`.
 
+## Инструменты сборки
+1. **Команды запускай только через Maven Wrapper**: `./mvnw …`. В окружении нет глобального `mvn`, так что сразу подтверждай, что используешь wrapper.
+
 ## Стиль кода и качество
 - Java 17, Spring Boot 3; придерживаемся текущего стиля (Google Java Format/IDE автoформат), 4 пробела, import-order по умолчанию. Имена классов UpperCamel, методов/полей lowerCamel. Используем Lombok, но без лишней магии; явные null-проверки и Optional там, где нужно.
 - Тесты: JUnit 5 + AssertJ; именуем `*Test`, кладем в зеркальные пакеты `src/test/java`. Для регрессий — добавляйте узкие тесты на новый/исправленный сценарий.
